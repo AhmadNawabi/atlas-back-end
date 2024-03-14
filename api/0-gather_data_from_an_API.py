@@ -1,68 +1,37 @@
 #!/usr/bin/python3
-"""This module defines a script that connects to an API."""
-import sys
-import requests
 
+"""
+Python script that, using a REST API, for a given employee ID,
+returns information about his/her TODO list progress.
+"""
 
-def fetch_employee_todo_progress(employee_id):
-    """
-    Fetches information about the employee's TODO 
-    list progress using a REST API.
+from requests import get
+from sys import argv
 
-    Args:
-    employee_id (int): The ID of the employee 
-    whose TODO list progress is to be fetched.
-
-    Returns:
-    None: The function prints the progress 
-    information to the standard output.
-
-    Example:
-    fetch_employee_todo_progress(1)
-    # Output:
-    # Employee Leanne Graham is done with tasks 
-    (5/20):
-    #     delectus aut autem
-    #     quis ut nam facilis et officia qui
-    #     fugiat veniam minus
-    #     et porro tempora
-    #     laboriosam mollitia et enim quasi 
-          adipisci quia provident illum
-    """
-    base_url = "https://jsonplaceholder.typicode.com"
-    user_url = f"{base_url}/users/{employee_id}"
-    todo_url = f"{base_url}/todos?userId={employee_id}"
-
-    # Fetch user information
-    user_response = requests.get(user_url)
-    if user_response.status_code != 200:
-        print("Failed to fetch user information.")
-        return
-
-    user_data = user_response.json()
-    employee_name = user_data["name"]
-
-    # Fetch todo list
-    todo_response = requests.get(todo_url)
-    if todo_response.status_code != 200:
-        print("Failed to fetch todo list.")
-        return
-
-    todo_data = todo_response.json()
-    total_tasks = len(todo_data)
-    completed_tasks = [task for task in todo_data if 
-                       task["completed"]]
-    num_completed_tasks = len(completed_tasks)
-
-    # Print progress
-    print(f"Employee {employee_name} is done with tasks 
-          ({num_completed_tasks}/{total_tasks}):")
-    for task in completed_tasks:
-        print(f"\t{task['title']}")
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Usage: python script.py <employee_id>")
-    else:
-        employee_id = int(sys.argv[1])
-        fetch_employee_todo_progress(employee_id)
+    response = get('https://jsonplaceholder.typicode.com/todos/')
+    data = response.json()
+    completed = 0
+    total = 0
+    tasks = []
+    response2 = get('https://jsonplaceholder.typicode.com/users')
+    data2 = response2.json()
+
+    for i in data2:
+        if i.get('id') == int(argv[1]):
+            employee = i.get('name')
+
+    for i in data:
+        if i.get('userId') == int(argv[1]):
+            total += 1
+
+            if i.get('completed') is True:
+                completed += 1
+                tasks.append(i.get('title'))
+
+    print("Employee {} is done with tasks({}/{}):".format(employee, completed,
+                                                          total))
+
+    for i in tasks:
+        print("\t {}".format(i))
